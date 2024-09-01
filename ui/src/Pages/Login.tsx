@@ -1,17 +1,27 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Container, Box, Typography, TextField, Button, Grid, Link } from '@mui/material';
 import MessagingAPI from '../Shared/api/MessagingApi';
+import { useNavigate } from 'react-router-dom';
+import {AuthContext} from '../Shared/utils/AuthContext'
 
 const Login: React.FC = () => {
   const [name, setName] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const messagingAPI = new MessagingAPI("/api");
-
+  const navigate = useNavigate();
+  const authContext = useContext(AuthContext);
+  
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     try {
       event.preventDefault();
       const response = await messagingAPI.login(name, password);
       console.log('Login Successful', response);
+      
+      if (authContext) {
+        authContext.setAuth(true);
+      }
+
+      navigate('/home')
     }
     catch (error) {
       console.error("Login failed:", error);
@@ -74,3 +84,4 @@ const Login: React.FC = () => {
 };
 
 export default Login;
+

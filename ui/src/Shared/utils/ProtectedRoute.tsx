@@ -6,12 +6,12 @@ const ProtectedRoute: React.FC = () => {
   const authContext = useContext(AuthContext);
 
   if (!authContext) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/" />;
   }
 
   const { isAuthenticated } = authContext;
 
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" />;
+  return isAuthenticated ? <Outlet /> : <Navigate to="/" />;
 };
 
 export default ProtectedRoute;

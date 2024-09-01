@@ -57,6 +57,10 @@ class MessagingAPI {
     async createAccount(name: string, password: string): Promise<any> {
         return this.sendRequest('POST', this.paths.createAccount, { name, password });
     }
+
+    async getConversations(): Promise<any> {
+        return this.sendRequest('GET', this.paths.createAccount);
+    }
 }
 
 export default MessagingAPI;

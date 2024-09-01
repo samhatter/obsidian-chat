@@ -12,18 +12,18 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-type StoredUserLogin struct {
+type UserLogin struct {
 	Name string `json:"name"`
 	Hash []byte `json:"hash"`
 }
 
-type UserLogin struct {
+type UserLoginRequest struct {
 	Name string `json:"name"`
 	Password string `json:"password"`
 }
 
 type Session struct {
-    Username    string
+    Name    string
     Expiration  time.Time
 }
 
@@ -31,7 +31,7 @@ type Session struct {
 func create_account(w http.ResponseWriter, r *http.Request, client *mongo.Client) {
 	log.Println("Received request for /create-account")
 
-	var user UserLogin
+	var user UserLoginRequest
 
 	err := json.NewDecoder(r.Body).Decode(&user)
 
@@ -57,7 +57,7 @@ func create_account(w http.ResponseWriter, r *http.Request, client *mongo.Client
 				return
 			}
 
-			newUser := StoredUserLogin{
+			newUser := UserLogin{
 				Name: user.Name,
 				Hash: hash,
 			}
@@ -90,7 +90,7 @@ func create_account(w http.ResponseWriter, r *http.Request, client *mongo.Client
 func login (w http.ResponseWriter, r *http.Request, client *mongo.Client, sessions map[string]Session) {
 	log.Println("Received request for /login")
 
-	var userLogin UserLogin
+	var userLogin UserLoginRequest
 
 	err := json.NewDecoder(r.Body).Decode(&userLogin)
 	if err != nil {
@@ -104,7 +104,7 @@ func login (w http.ResponseWriter, r *http.Request, client *mongo.Client, sessio
     defer cancel()
 
     query := bson.M{"name": userLogin.Name}
-    var storedUserLogin StoredUserLogin
+    var storedUserLogin UserLogin
     err = collection.FindOne(ctx, query).Decode(&storedUserLogin)
 	if err == nil {
 		err = bcrypt.CompareHashAndPassword(storedUserLogin.Hash, []byte(userLogin.Password))
@@ -118,7 +118,7 @@ func login (w http.ResponseWriter, r *http.Request, client *mongo.Client, sessio
 			sessionID := uuid.New().String()
 
 			sessions[sessionID] =  Session{
-				Username:   storedUserLogin.Name,
+				Name:   storedUserLogin.Name,
 				Expiration: time.Now().Add(24 * time.Hour),
 			}
 

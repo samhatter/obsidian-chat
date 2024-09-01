@@ -47,6 +47,9 @@ func main() {
     r.HandleFunc("/", root).Methods("GET")
 	r.HandleFunc("/create-account", func(w http.ResponseWriter, r *http.Request) {create_account(w,r,mongo_client)}).Methods("POST")
 	r.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {login(w,r,mongo_client, sessions)}).Methods("POST")
-
+	r.HandleFunc("/send-message", func(w http.ResponseWriter, r *http.Request) {send_message(w,r,mongo_client,sessions)}).Methods("POST")
+	r.HandleFunc("/create-conversation", func(w http.ResponseWriter, r *http.Request) {create_conversations(w,r,mongo_client,sessions)}).Methods("POST")
+	r.HandleFunc("/get-conversations", func(w http.ResponseWriter, r *http.Request) {get_conversations(w,r,mongo_client,sessions)}).Methods("GET")
+	r.HandleFunc("/get-messages", func(w http.ResponseWriter, r *http.Request) {get_messages(w,r,mongo_client,sessions)}).Methods("GET")
     log.Fatal(http.ListenAndServe(":8080", r))
 }

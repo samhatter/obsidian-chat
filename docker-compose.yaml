@@ -1,0 +1,39 @@
+services:
+  api:
+    container_name: api
+    build: ./api
+    volumes:
+      - ./api/src:/app/src
+    depends_on:
+      - mongodb
+  
+  ui:
+    container_name: ui
+    build: ./ui
+    volumes:
+      - ./ui:/app
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: samantha
+      MONGO_INITDB_ROOT_PASSWORD: Farshtunken
+      MONGO_INITDB_DATABASE: messagingdb
+    volumes:
+      - mongo_data:/data/db
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api
+      - ui
+
+volumes:
+  mongo_data:
+    

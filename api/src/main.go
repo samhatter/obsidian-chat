@@ -51,5 +51,8 @@ func main() {
 	r.HandleFunc("/create-conversation", func(w http.ResponseWriter, r *http.Request) {create_conversation(w,r,mongo_client,sessions)}).Methods("POST")
 	r.HandleFunc("/get-conversations", func(w http.ResponseWriter, r *http.Request) {get_conversations(w,r,mongo_client,sessions)}).Methods("GET")
 	r.HandleFunc("/get-conversation", func(w http.ResponseWriter, r *http.Request) {get_conversation(w,r,mongo_client,sessions)}).Methods("POST")
-    log.Fatal(http.ListenAndServe(":8080", r))
+	r.HandleFunc("/upvote", func(w http.ResponseWriter, r *http.Request) {upvote(w,r,mongo_client,sessions)}).Methods("POST")
+	r.HandleFunc("/downvote", func(w http.ResponseWriter, r *http.Request) {downvote(w,r,mongo_client,sessions)}).Methods("POST")
+    r.HandleFunc("/get-user", func(w http.ResponseWriter, r *http.Request) {get_user(w,r, sessions)}).Methods("GET")
+	log.Fatal(http.ListenAndServe(":8080", r))
 }

@@ -1,27 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, CssBaseline, Dialog, DialogActions, DialogContent, DialogTitle, Drawer, List, ListItem, ListItemButton, ListItemText, TextField, Typography} from '@mui/material';
+import { Box, Button, CssBaseline, Dialog, DialogActions, DialogContent, DialogTitle, Drawer, List, ListItem, ListItemButton, ListItemText, Paper, TextField, Typography} from '@mui/material';
 import MessagingAPI from '../Shared/api/MessagingApi';
-
-interface ConversationResult {
-  conversationid: string;
-  name: string;
-}
-
-interface Message {
-	time: Date;
-	sender: string;
-	message: string; 
-	messageid: string; 
-	likes: string[]; 
-}
-
-interface Conversation {
-	name: string;
-	participants: string[]; 
-	conversationid: string;
-	messages: Message[];
-}
-
+import ConversationDrawer from '../Components/ConversationDrawer';
+import MessagingView from '../Components/MessagingView';
+import { Conversation, ConversationResult, Message } from '../Shared/utils/Interfaces';
 
 const Home: React.FC = () => {
   const [conversations, setConversations] = useState<ConversationResult[]>([]);
@@ -30,9 +12,23 @@ const Home: React.FC = () => {
   const [conversationDialogueOpen, setConversationDialogueOpen] = useState<boolean>(false);
   const [conversationDialogueName, setConversationDialogueName] = useState<string>("");
   const [conversationDialogueParticipants, setConversationDialogueParticipants] = useState<string>("");
-
-  const drawerWidth = 240;
+  const [sendMessage, setSendMessage] = useState<string>("")
+  const [name, setName] = useState<string>("")
   const messagingAPI = new MessagingAPI("/api");
+
+  const handleUpVote = async (message:Message, conversationid:string) => {
+    if (!message.upvotes?.includes(name)) {
+      const response = await messagingAPI.upVote(message.messageid, conversationid);
+    }
+    fetchConversation();
+  }
+
+  const handleDownVote = async (message:Message, conversationid:string) => {
+    if (!message.downvotes?.includes(name)) {
+      const response = await messagingAPI.downVote(message.messageid, conversationid);
+    }
+    fetchConversation();
+  }
 
   const handleConversationDialogueOpen = () => {
     setConversationDialogueOpen(true);
@@ -61,10 +57,29 @@ const Home: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    const fetchUser = async () => {
+      const response = await messagingAPI.getUser();
+      setName(response.name);
+    };
+
+    fetchUser();
+  }, []);
+
   const fetchConversation = async () => {
     if (toggledConversationID && toggledConversationID != "") {
       const response = await messagingAPI.getConversation(toggledConversationID);
-      setToggledConversation(response.conversation)
+      if (response.conversation.conversationid == toggledConversationID) {
+        setToggledConversation(response.conversation)
+      }
+    }
+  }
+
+  const handleSendMessage = async () => {
+    if (sendMessage != '' && toggledConversationID != '') {
+      const response = await messagingAPI.sendMessage(sendMessage, toggledConversationID);
+      setSendMessage('');
+      fetchConversation();
     }
   }
 
@@ -74,104 +89,43 @@ const Home: React.FC = () => {
     return () => clearInterval(intervalId);
   }, []);
 
-  useEffect( () => {
-    const intervalId = setInterval(fetchConversation, 2000);
-    fetchConversation();
-    return () => clearInterval(intervalId);
-  }, []);
-
   useEffect(() => {
     if (toggledConversationID) {
-      fetchConversation();
+      const fetchConversationData = async () => {
+        await fetchConversation();
+      };
+      fetchConversationData();
+      const intervalId = setInterval(fetchConversationData, 2000);
+      return () => clearInterval(intervalId);
     }
   }, [toggledConversationID]);
 
+
   return (
-    <Box sx={{ display: 'flex' }}>
-    <CssBaseline />
-    <Dialog
-        open={conversationDialogueOpen}
-        onClose={handleConversationDialogueClose}
-        PaperProps={{
-          sx: {
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: 'background.paper',
-            padding: 2,
-          },
-        }}
-      >
-        <DialogTitle>Create a New Conversation</DialogTitle>
-        <DialogContent sx={{ width: '100%', maxWidth: 500 }}>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Conversation Name"
-            type="text"
-            fullWidth
-            value={conversationDialogueName}
-            onChange={(e) => setConversationDialogueName(e.target.value)}
-          />
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Conversation Participants"
-            type="text"
-            fullWidth
-            value={conversationDialogueParticipants}
-            onChange={(e) => setConversationDialogueParticipants(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions sx={{ justifyContent: 'center' }}>
-          <Button onClick={handleConversationDialogueClose} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleConversationDialogueSubmit} color="primary">
-            Create
-          </Button>
-        </DialogActions>
-      </Dialog>
-    <Drawer
-      sx={{
-        width: drawerWidth,
-        flexShrink: 0,
-        '& .MuiDrawer-paper': {
-          width: drawerWidth,
-          boxSizing: 'border-box',
-        },
-      }}
-      variant="permanent"
-      anchor="left"
-    >
-      <Typography variant="h6" sx={{ padding: 2 }}>
-        Conversations
-      </Typography>
-      <Button variant="contained" color="primary" onClick={handleConversationDialogueOpen}>
-        Add Conversation
-      </Button>
-      <List>
-        {conversations.sort((a,b) => a.name < b.name ? -1 : a.name < b.name ? 1 : 0).map((conversation) => (
-          <ListItemButton key={conversation.conversationid} onClick={() => handleChangeConversation(conversation.conversationid)}>
-            <ListItemText primary={conversation.name} />
-          </ListItemButton>
-        ))}
-      </List>
-    </Drawer>
-    <Box
-      component="main"
-      sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3 }}
-    >
-      <List sx={{ display: 'flex',  justifyContent: 'flex-start', flexDirection: 'row', padding: 0, height: '60px' }}>
-        {(toggledConversation ? toggledConversation.participants : []).sort().map((name, index)  => (
-          <ListItem key={index} sx={{ minWidth: '60px', padding: '5', margin: '0', width: "auto"}}>
-            <ListItemText primary={name} />
-          </ListItem>
-        ))}
-      </List>
+    <Box sx={{ display: 'flex', height:'97vh'}}>
+      <ConversationDrawer
+        conversations={conversations}
+        conversationDialogueOpen={conversationDialogueOpen}
+        conversationDialogueName={conversationDialogueName}
+        conversationDialogueParticipants={conversationDialogueParticipants}
+        handleConversationDialogueClose={handleConversationDialogueClose}
+        handleConversationDialogueOpen={handleConversationDialogueOpen}
+        handleConversationDialogueSubmit={handleConversationDialogueSubmit}
+        handleChangeConversation={handleChangeConversation}
+        setConversationDialogueName={setConversationDialogueName}
+        setConversationDialogueParticipants={setConversationDialogueParticipants}
+      />
+      <MessagingView 
+        toggledConversation={toggledConversation}
+        sendMessage={sendMessage}
+        setSendMessage={setSendMessage}
+        handleSendMessage={handleSendMessage}
+        handleUpVote={handleUpVote}
+        handleDownVote={handleDownVote}
+        name={name}
+      />
     </Box>
-  </Box>
-);
+  );
 };
 
 export default Home;

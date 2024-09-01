@@ -13,6 +13,9 @@ class MessagingAPI {
             getConversation: "/get-conversation",
             getConversations: "/get-conversations",
             createConversation: "/create-conversation",
+            upVote: "/upvote",
+            downVote: "/downvote",
+            getUser: "/get-user",
         };
     }
 
@@ -67,10 +70,27 @@ class MessagingAPI {
     async getConversations(): Promise<any> {
         return this.sendRequest('GET', this.paths.getConversations);
     }
-
+    
     async getConversation(conversationid: string): Promise<any> {
         return this.sendRequest('POST', this.paths.getConversation, {conversationid});
     }
+
+    async sendMessage(message: string, conversationid: string): Promise<any> {
+        return this.sendRequest('POST', this.paths.sendMessage, {message, conversationid});
+    }
+
+    async upVote(messageid: string, conversationid: string): Promise<any> {
+        return this.sendRequest('POST', this.paths.upVote, {messageid, conversationid});
+    }
+
+    async downVote(messageid: string, conversationid: string): Promise<any> {
+        return this.sendRequest('POST', this.paths.downVote, {messageid, conversationid});
+    }
+
+    async getUser(): Promise<any> {
+        return this.sendRequest('GET', this.paths.getUser)
+    }
+
 }
 
 export default MessagingAPI;

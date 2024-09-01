@@ -8,6 +8,7 @@ import (
 	 "github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type SendMessageRequest struct {
@@ -24,7 +25,8 @@ type Message struct {
 	Sender string `json:"sender"`
 	Message string `json:"message"`
 	MessageID string `json:"messageid"`
-	Likes []string `json:"likes"`
+	UpVotes []string `json:"upvotes"`
+	DownVotes []string `json:"downvotes"`
 }
 
 type ConversationRequest struct {
@@ -44,37 +46,13 @@ type Conversation struct {
 	Messages []Message `json:"messages"`
 }
 
-func validate_credentials(w http.ResponseWriter, r *http.Request, sessions map[string]Session) (bool, string) {
-	cookie, err := r.Cookie("session_id")
-    if err != nil {
-        if err == http.ErrNoCookie {
-            log.Println("SessionID not found", err)
-			http.Error(w, "SessionID not found", http.StatusUnauthorized)
-			return false, ""
-        } else {
-            log.Println("Error retrieving cookie:", err)
-			http.Error(w, "SessionID not found", http.StatusUnauthorized)
-			return false, ""
-        }
-	}
-
-	session, ok := sessions[cookie.Value]
-	if !ok {
-		log.Println("SessionID not valid")
-		http.Error(w, "SessionID not valid", http.StatusUnauthorized)
-		return false, ""
-	}
-	if time.Now().After(session.Expiration) {
-		log.Println("SessionID expired")
-		http.Error(w, "SessionID expired", http.StatusUnauthorized)
-		return false, ""
-	}
-	
-	return true, session.Name
+type VoteRequest struct {
+	ConversationID string `json:"conversationid"`
+	MessageID string `json:"messageid"`
 }
 
 func send_message(w http.ResponseWriter, r *http.Request, client *mongo.Client, sessions map[string]Session) {
-	log.Println("Received request fpr /send-message")
+	log.Println("Received request for /send-message")
 	auth, name := validate_credentials(w,r,sessions) 
 	if !auth {
 		return
@@ -93,7 +71,8 @@ func send_message(w http.ResponseWriter, r *http.Request, client *mongo.Client, 
 		Sender: name,
 		Message: sendMessageRequest.Message,
 		MessageID: uuid.NewString(),
-		Likes: make([]string, 0),
+		UpVotes: make([]string, 0),
+		DownVotes: make([]string, 0),
 	}
 
 	collection := client.Database("messagingdb").Collection("conversations")
@@ -135,7 +114,7 @@ func send_message(w http.ResponseWriter, r *http.Request, client *mongo.Client, 
 }
 
 func create_conversation(w http.ResponseWriter, r *http.Request, client *mongo.Client, sessions map[string]Session) {
-	log.Println("Received request fpr /create-conversation")
+	log.Println("Received request for /create-conversation")
 	auth, name := validate_credentials(w,r,sessions) 
 	if !auth {
 		return
@@ -233,7 +212,7 @@ func get_conversations(w http.ResponseWriter, r *http.Request, client *mongo.Cli
 }
 
 func get_conversation(w http.ResponseWriter, r *http.Request, client *mongo.Client, sessions map[string]Session) {
-	log.Println("Received request fpr /get-messages")
+	log.Println("Received request for /get-conversation")
 	auth, name := validate_credentials(w,r,sessions) 
 	if !auth {
 		return
@@ -269,6 +248,118 @@ func get_conversation(w http.ResponseWriter, r *http.Request, client *mongo.Clie
 	}
 	jsonResponse, _ := json.Marshal(response)
 	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonResponse)
+}
+
+func upvote(w http.ResponseWriter, r *http.Request, client *mongo.Client, sessions map[string]Session) {
+	log.Println("Received request for /upvote")
+	auth, name := validate_credentials(w,r,sessions) 
+	if !auth {
+		return
+	}
+
+	var voteRequest VoteRequest 
+	err := json.NewDecoder(r.Body).Decode(&voteRequest)
+	if err != nil {
+		log.Println("Error parsing request", err)
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+    	return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+    defer cancel()
+
+	collection := client.Database("messagingdb").Collection("conversations")
+	filter := bson.M{"conversationid": voteRequest.ConversationID}
+	update := bson.M{
+        "$addToSet": bson.M{
+            "messages.$[message].upvotes": name,
+        },
+    }
+	arrayFilters := options.ArrayFilters{
+        Filters: []interface{}{
+            bson.M{"message.messageid": voteRequest.MessageID},
+        },
+    }
+	updateOptions := options.UpdateOptions{
+        ArrayFilters: &arrayFilters,
+    }
+
+	result, err := collection.UpdateOne(ctx, filter, update, &updateOptions)
+	if err != nil {
+		log.Println("Could not add upvote to message", err)
+		http.Error(w, "Could not add upvote to message", http.StatusInternalServerError)
+		return
+	}
+	if result.ModifiedCount == 0 {
+		log.Println("Could not add upvote to message", err)
+		http.Error(w, "Could not add upvote to message", http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]string {
+		"message": "Upvote added to message",
+	}
+
+	jsonResponse, _ := json.Marshal(response)
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonResponse)
+}
+
+func downvote(w http.ResponseWriter, r *http.Request, client *mongo.Client, sessions map[string]Session) {
+	log.Println("Received request for /downvote")
+	auth, name := validate_credentials(w,r,sessions) 
+	if !auth {
+		return
+	}
+
+	var voteRequest VoteRequest 
+	err := json.NewDecoder(r.Body).Decode(&voteRequest)
+	if err != nil {
+		log.Println("Error parsing request", err)
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+    	return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+    defer cancel()
+
+	collection := client.Database("messagingdb").Collection("conversations")
+	filter := bson.M{"conversationid": voteRequest.ConversationID}
+	update := bson.M{
+        "$addToSet": bson.M{
+            "messages.$[message].downvotes": name,
+        },
+    }
+	arrayFilters := options.ArrayFilters{
+        Filters: []interface{}{
+            bson.M{"message.messageid": voteRequest.MessageID},
+        },
+    }
+	updateOptions := options.UpdateOptions{
+        ArrayFilters: &arrayFilters,
+    }
+
+	result, err := collection.UpdateOne(ctx, filter, update, &updateOptions)
+	if err != nil {
+		log.Println("Could not add downvote to message", err)
+		http.Error(w, "Could not add downvote to message", http.StatusInternalServerError)
+		return
+	}
+	if result.ModifiedCount == 0 {
+		log.Println("Could not add downvote to message", err)
+		http.Error(w, "Could not add downvote to message", http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]string {
+		"message": "Downvote added to message",
+	}
+
+	jsonResponse, _ := json.Marshal(response)
+	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonResponse)
 }

@@ -159,3 +159,50 @@ func login (w http.ResponseWriter, r *http.Request, client *mongo.Client, sessio
 		return
 	}
 }
+
+func validate_credentials(w http.ResponseWriter, r *http.Request, sessions map[string]Session) (bool, string) {
+	cookie, err := r.Cookie("session_id")
+    if err != nil {
+        if err == http.ErrNoCookie {
+            log.Println("SessionID not found", err)
+			http.Error(w, "SessionID not found", http.StatusUnauthorized)
+			return false, ""
+        } else {
+            log.Println("Error retrieving cookie:", err)
+			http.Error(w, "SessionID not found", http.StatusUnauthorized)
+			return false, ""
+        }
+	}
+
+	session, ok := sessions[cookie.Value]
+	if !ok {
+		log.Println("SessionID not valid")
+		http.Error(w, "SessionID not valid", http.StatusUnauthorized)
+		return false, ""
+	}
+	if time.Now().After(session.Expiration) {
+		log.Println("SessionID expired")
+		http.Error(w, "SessionID expired", http.StatusUnauthorized)
+		return false, ""
+	}
+	
+	return true, session.Name
+}
+
+func get_user (w http.ResponseWriter, r *http.Request, sessions map[string]Session) {
+	log.Println("Received request for /get-user")
+	auth, name := validate_credentials(w,r,sessions) 
+	if !auth {
+		return
+	}
+
+	response := map[string]string {
+		"message": "Get user successful",
+		"name": name,
+	}
+
+	jsonResponse, _ := json.Marshal(response)
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonResponse)
+}

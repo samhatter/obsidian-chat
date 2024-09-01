@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"log"
+	"strings"
 	"time"
 	"context"
 	"encoding/json"
@@ -36,6 +37,12 @@ func create_account(w http.ResponseWriter, r *http.Request, client *mongo.Client
 	err := json.NewDecoder(r.Body).Decode(&user)
 
 	if err != nil {
+		log.Println("Error parsing request", err)
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+    	return
+	}
+
+	if strings.ContainsAny(user.Name,  " ,") {
 		log.Println("Error parsing request")
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
     	return
@@ -78,10 +85,12 @@ func create_account(w http.ResponseWriter, r *http.Request, client *mongo.Client
 			w.Write(jsonResponse)
 			return
         } else {
+			log.Println("Error checking user", err)
             http.Error(w, "Error checking user", http.StatusInternalServerError)
 			return
         }
     } else {
+		log.Println("User already exists")
 		http.Error(w, "User already exists", http.StatusConflict)
 		return
 	}
@@ -94,7 +103,7 @@ func login (w http.ResponseWriter, r *http.Request, client *mongo.Client, sessio
 
 	err := json.NewDecoder(r.Body).Decode(&userLogin)
 	if err != nil {
-		log.Println("Error parsing request")
+		log.Println("Error parsing request", err)
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
     	return
 	}
@@ -109,7 +118,7 @@ func login (w http.ResponseWriter, r *http.Request, client *mongo.Client, sessio
 	if err == nil {
 		err = bcrypt.CompareHashAndPassword(storedUserLogin.Hash, []byte(userLogin.Password))
 		if err != nil {
-			log.Println("Invalid password")
+			log.Println("Invalid password", err)
 			http.Error(w, "Invalid username or password", http.StatusUnauthorized)
 			return
 		} else {
@@ -141,11 +150,11 @@ func login (w http.ResponseWriter, r *http.Request, client *mongo.Client, sessio
 		}
 	} else {
 		if err == mongo.ErrNoDocuments {
-			log.Println("No user found")
+			log.Println("No user found", err)
 			http.Error(w, "Invalid username or password", http.StatusUnauthorized)
 			return
 		}
-		log.Println("Error checking user")
+		log.Println("Error checking user", err)
 		http.Error(w, "Error checking user", http.StatusInternalServerError)
 		return
 	}

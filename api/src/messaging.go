@@ -5,25 +5,25 @@ import (
 	"log"
 	"context"
 	"encoding/json"
-	"math/rand"
+	 "github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 type SendMessageRequest struct {
 	Message string `json:"message"`
-	ConversationID uint64 `json:"conversationid"`
+	ConversationID string `json:"conversationid"`
 }
 
-type GetMessageRequest struct {
-	ConversationID uint64 `json:"conversationid"`
+type GetConversationRequest struct {
+	ConversationID string `json:"conversationid"`
 }
 
 type Message struct {
 	Time time.Time `json:"time"`
 	Sender string `json:"sender"`
 	Message string `json:"message"`
-	MessageID uint64 `json:"messageid"`
+	MessageID string `json:"messageid"`
 	Likes []string `json:"likes"`
 }
 
@@ -34,13 +34,13 @@ type ConversationRequest struct {
 
 type ConversationResult struct {
 	Name string `json:"name"`
-	ConversationID uint64 `json:"conversationid"`
+	ConversationID string `json:"conversationid"`
 }
 
 type Conversation struct {
 	Name string `json:"name"`
 	Participants []string `json:"participants"`
-	ConversationID uint64 `json:"conversationid"`
+	ConversationID string `json:"conversationid"`
 	Messages []Message `json:"messages"`
 }
 
@@ -48,7 +48,7 @@ func validate_credentials(w http.ResponseWriter, r *http.Request, sessions map[s
 	cookie, err := r.Cookie("session_id")
     if err != nil {
         if err == http.ErrNoCookie {
-            log.Println("SessionID not found")
+            log.Println("SessionID not found", err)
 			http.Error(w, "SessionID not found", http.StatusUnauthorized)
 			return false, ""
         } else {
@@ -74,6 +74,7 @@ func validate_credentials(w http.ResponseWriter, r *http.Request, sessions map[s
 }
 
 func send_message(w http.ResponseWriter, r *http.Request, client *mongo.Client, sessions map[string]Session) {
+	log.Println("Received request fpr /send-message")
 	auth, name := validate_credentials(w,r,sessions) 
 	if !auth {
 		return
@@ -82,7 +83,7 @@ func send_message(w http.ResponseWriter, r *http.Request, client *mongo.Client, 
 	var sendMessageRequest SendMessageRequest 
 	err := json.NewDecoder(r.Body).Decode(&sendMessageRequest)
 	if err != nil {
-		log.Println("Error parsing request")
+		log.Println("Error parsing request", err)
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
     	return
 	}
@@ -91,7 +92,7 @@ func send_message(w http.ResponseWriter, r *http.Request, client *mongo.Client, 
 		Time: time.Now(),
 		Sender: name,
 		Message: sendMessageRequest.Message,
-		MessageID: rand.Uint64(),
+		MessageID: uuid.NewString(),
 		Likes: make([]string, 0),
 	}
 
@@ -112,7 +113,7 @@ func send_message(w http.ResponseWriter, r *http.Request, client *mongo.Client, 
 	result, err := collection.UpdateOne(ctx, filter, update)
 
 	if err != nil {
-		log.Println("Could not add message to conversation")
+		log.Println("Could not add message to conversation", err)
 		http.Error(w, "Could not add message to conversation", http.StatusInternalServerError)
 		return
 	}
@@ -133,7 +134,8 @@ func send_message(w http.ResponseWriter, r *http.Request, client *mongo.Client, 
 	w.Write(jsonResponse)
 }
 
-func create_conversations(w http.ResponseWriter, r *http.Request, client *mongo.Client, sessions map[string]Session) {
+func create_conversation(w http.ResponseWriter, r *http.Request, client *mongo.Client, sessions map[string]Session) {
+	log.Println("Received request fpr /create-conversation")
 	auth, name := validate_credentials(w,r,sessions) 
 	if !auth {
 		return
@@ -142,7 +144,7 @@ func create_conversations(w http.ResponseWriter, r *http.Request, client *mongo.
 	var conversationRequest ConversationRequest 
 	err := json.NewDecoder(r.Body).Decode(&conversationRequest)
 	if err != nil {
-		log.Println("Error parsing request")
+		log.Println("Error parsing request", err)
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
     	return
 	}
@@ -150,7 +152,7 @@ func create_conversations(w http.ResponseWriter, r *http.Request, client *mongo.
 	conversation := Conversation {
 		Name: conversationRequest.Name,
 		Participants: append(conversationRequest.Participants, name),
-		ConversationID: rand.Uint64(),
+		ConversationID: uuid.NewString(),
 		Messages: make([]Message, 0),
 	}
 
@@ -160,6 +162,7 @@ func create_conversations(w http.ResponseWriter, r *http.Request, client *mongo.
 	collection := client.Database("messagingdb").Collection("conversations")
 	_, err = collection.InsertOne(ctx, conversation)
 	if err != nil {
+		log.Println("Error inserting conversation into databse", err)
 		http.Error(w, "Error creating conversation", http.StatusInternalServerError)
 		return
 	}
@@ -175,6 +178,7 @@ func create_conversations(w http.ResponseWriter, r *http.Request, client *mongo.
 }
 
 func get_conversations(w http.ResponseWriter, r *http.Request, client *mongo.Client, sessions map[string]Session) {
+	log.Println("Received request for /get-conversations")
 	auth, name := validate_credentials(w,r,sessions) 
 	if !auth {
 		return
@@ -199,17 +203,16 @@ func get_conversations(w http.ResponseWriter, r *http.Request, client *mongo.Cli
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(jsonResponse)
 		}
-        log.Println("Could not query conversations")
+        log.Println("Could not query conversations", err)
 		http.Error(w, "Could not query conversations", http.StatusInternalServerError)
     }
 
     defer cursor.Close(ctx)
-
 	var conversationResults []ConversationResult
-	for cursor.Next(context.TODO()) {
+	for cursor.Next(ctx) {
         var conversation Conversation
         if err := cursor.Decode(&conversation); err != nil {
-            log.Println("Could not decode conversation from query")
+            log.Println("Could not decode conversation from query", err)
         } else {
 			conversationResult := ConversationResult {
 				Name:conversation.Name,
@@ -220,7 +223,7 @@ func get_conversations(w http.ResponseWriter, r *http.Request, client *mongo.Cli
     }
 
 	response := map[string]interface{} {
-		"message": "No conversations",
+		"message": "Get conversation successful",
 		"conversations": conversationResults,
 	}
 	jsonResponse, _ := json.Marshal(response)
@@ -229,16 +232,17 @@ func get_conversations(w http.ResponseWriter, r *http.Request, client *mongo.Cli
 	w.Write(jsonResponse)
 }
 
-func get_messages(w http.ResponseWriter, r *http.Request, client *mongo.Client, sessions map[string]Session) {
+func get_conversation(w http.ResponseWriter, r *http.Request, client *mongo.Client, sessions map[string]Session) {
+	log.Println("Received request fpr /get-messages")
 	auth, name := validate_credentials(w,r,sessions) 
 	if !auth {
 		return
 	}
 
-	var getMessageRequest GetMessageRequest 
-	err := json.NewDecoder(r.Body).Decode(&getMessageRequest)
+	var getConversationRequest GetConversationRequest 
+	err := json.NewDecoder(r.Body).Decode(&getConversationRequest)
 	if err != nil {
-		log.Println("Error parsing request")
+		log.Println("Error parsing request", err)
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
     	return
 	}
@@ -248,20 +252,20 @@ func get_messages(w http.ResponseWriter, r *http.Request, client *mongo.Client, 
 
 	collection := client.Database("messagingdb").Collection("conversations")
 	query := bson.M{
-		"collectionid": getMessageRequest.ConversationID,
+		"conversationid": getConversationRequest.ConversationID,
 		"participants": name,
 	}
 	var conversation Conversation
     err = collection.FindOne(ctx, query).Decode(&conversation)
 	if err != nil {
-		log.Println("Could not find conversation")
+		log.Println("Could not find conversation", err)
 		http.Error(w,"Could not find conversation", http.StatusInternalServerError)
 		return
 	}
 
 	response := map[string]interface{} {
-		"message": "No conversations",
-		"message_list": conversation.Messages,
+		"message": "Get conversation successful",
+		"conversation": conversation,
 	}
 	jsonResponse, _ := json.Marshal(response)
 	w.WriteHeader(http.StatusOK)

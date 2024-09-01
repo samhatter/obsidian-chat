@@ -15,7 +15,6 @@ const Login: React.FC = () => {
     try {
       event.preventDefault();
       const response = await messagingAPI.login(name, password);
-      console.log('Login Successful', response);
       
       if (authContext) {
         authContext.setAuth(true);

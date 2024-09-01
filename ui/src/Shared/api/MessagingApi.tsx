@@ -10,7 +10,9 @@ class MessagingAPI {
             login: "/login",
             createAccount: "/create-account",
             sendMessage: "/send-message",
-            getMessages: "/get-messages",
+            getConversation: "/get-conversation",
+            getConversations: "/get-conversations",
+            createConversation: "/create-conversation",
         };
     }
 
@@ -58,8 +60,16 @@ class MessagingAPI {
         return this.sendRequest('POST', this.paths.createAccount, { name, password });
     }
 
+    async createConversation(name: string, participants: string[]): Promise<any> {
+        return this.sendRequest('POST', this.paths.createConversation, { name, participants });
+    }
+
     async getConversations(): Promise<any> {
-        return this.sendRequest('GET', this.paths.createAccount);
+        return this.sendRequest('GET', this.paths.getConversations);
+    }
+
+    async getConversation(conversationid: string): Promise<any> {
+        return this.sendRequest('POST', this.paths.getConversation, {conversationid});
     }
 }
 

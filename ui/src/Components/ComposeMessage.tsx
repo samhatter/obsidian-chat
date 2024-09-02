@@ -24,6 +24,12 @@ const ComposeMessage: React.FC<ComposeMessageProps> = (props) => {
         placeholder="Type a message..."
         variant="outlined"
         fullWidth
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            handleSendMessage();
+          }
+        }}
         sx={{
             marginRight: 1, 
             width: 'fill', 

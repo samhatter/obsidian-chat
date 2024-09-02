@@ -32,7 +32,7 @@ func main() {
 	ctx, cancel  := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	clientOptions := options.Client().ApplyURI("mongodb://samantha:Farshtunken@mongodb:27017")
+	clientOptions := options.Client().ApplyURI("mongodb://username:password@mongodb:27017")
 
 	mongo_client, err := mongo.Connect(ctx, clientOptions)
     if err != nil {

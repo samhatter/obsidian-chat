@@ -3,7 +3,6 @@ import { ThumbUp, ThumbDown } from "@mui/icons-material";
 import { Message } from "../Shared/utils/Interfaces";
 
 interface MessageProps {
-    index: number;
     message: Message;
     name: string;
     conversationid: string;
@@ -13,7 +12,6 @@ interface MessageProps {
 
 const MessageBox: React.FC<MessageProps> = (props) => {
     const {
-        index,
         message,
         name,
         conversationid,
@@ -31,7 +29,6 @@ const MessageBox: React.FC<MessageProps> = (props) => {
 
     return (
         <Paper
-            key={index}
             sx={{
             padding: 2,
             marginBottom: 1,

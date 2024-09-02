@@ -42,14 +42,14 @@ const ComposeMessage: React.FC<ComposeMessageProps> = (props) => {
                     color: '#eef',
                 },
             '& .MuiInputBase-input': {
-                    color: '#eef', // Text color
+                    color: '#eef',
             },
         }}
         />
         <Button
         variant="contained"
         onClick={handleSendMessage}
-        sx={{ height: '100%',  minWidth: '80px', width: 'auto', backgroundColor: '#eef', color: '#0B0C10'}}
+        sx={{ marginRight: 0, height: '120%',  minWidth: '80px', width: 'auto', backgroundColor: '#eef', color: '#0B0C10'}}
         >
         Send
         </Button>

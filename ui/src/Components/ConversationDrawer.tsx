@@ -36,41 +36,82 @@ const ConversationDrawer: React.FC<ConversationDrawerProps> = (props) => {
             open={conversationDialogueOpen}
             onClose={handleConversationDialogueClose}
             PaperProps={{
-            sx: {
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: 'background.paper',
-                padding: 2,
-            },
+                sx: {
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    padding: 2,
+                    backgroundColor: "#eef",
+                    borderRadius: "10px"
+                }
             }}
         >
             <DialogTitle>Create a New Conversation</DialogTitle>
-            <DialogContent sx={{ width: '100%', maxWidth: 500 }}>
+            <DialogContent sx={{ width: '100%', maxWidth: 500}}>
             <TextField
-                autoFocus
                 margin="dense"
-                label="Conversation Name"
-                type="text"
+                placeholder="Conversation Participants"
                 fullWidth
+                variant="outlined"
                 value={conversationDialogueName}
                 onChange={(e) => setConversationDialogueName(e.target.value)}
+                sx={{
+                    marginRight: 0, 
+                    width: 'fill', 
+                    '& .MuiOutlinedInput-root': {
+                            '& fieldset': {
+                                borderColor: '#4A4455',
+                            },
+                            '&:hover fieldset': {
+                                borderColor: '#4A4455',
+                            },
+                            '&.Mui-focused fieldset': {
+                                borderColor: '#4A4455',
+                            },
+                        },
+                        '& .MuiInputLabel-root.Mui-focused': {
+                            color: '#4A4455',
+                        },
+                    '& .MuiInputBase-input': {
+                            color: '#4A4455',
+                    },
+                }}
             />
             <TextField
-                autoFocus
                 margin="dense"
-                label="Conversation Participants"
-                type="text"
+                placeholder="Conversation Participants"
                 fullWidth
+                variant="outlined"
                 value={conversationDialogueParticipants}
                 onChange={(e) => setConversationDialogueParticipants(e.target.value)}
+                sx={{
+                    marginRight: 0, 
+                    width: 'fill', 
+                    '& .MuiOutlinedInput-root': {
+                            '& fieldset': {
+                                borderColor: '#4A4455',
+                            },
+                            '&:hover fieldset': {
+                                borderColor: '#4A4455',
+                            },
+                            '&.Mui-focused fieldset': {
+                                borderColor: '#4A4455',
+                            },
+                        },
+                        '& .MuiInputLabel-root.Mui-focused': {
+                            color: '#4A4455',
+                        },
+                    '& .MuiInputBase-input': {
+                            color: '#4A4455',
+                    },
+                }}
             />
             </DialogContent>
             <DialogActions sx={{ justifyContent: 'center'}}>
-            <Button onClick={handleConversationDialogueClose} color="primary">
+            <Button onClick={handleConversationDialogueClose} sx={{color:"#4A4455"}}>
                 Cancel
             </Button>
-            <Button onClick={handleConversationDialogueSubmit} color="primary">
+            <Button onClick={handleConversationDialogueSubmit} sx={{color:"#4A4455"}}>
                 Create
             </Button>
             </DialogActions>
@@ -92,14 +133,15 @@ const ConversationDrawer: React.FC<ConversationDrawerProps> = (props) => {
             variant="permanent"
             anchor="left"
         >
-            <Button variant="contained" color="primary" onClick={handleConversationDialogueOpen} sx={{ mx:0, mt:1, mb:1, padding:2, backgroundColor: '#eef', color: '#0B0C10', borderRadius: '10px'}}>
-            Add Conversation
-            </Button>
+            
             <Box sx={{display: 'flex', flexDirection: 'column', flexGrow: 1, overflowY: 'auto', backgroundColor: '#B9B5C4', borderRadius:'10px', height:'fill'}}>
+                <Button variant="contained" color="primary" onClick={handleConversationDialogueOpen} sx={{ mx:1, mt:1, mb:1, padding:2, backgroundColor: '#eef', color: '#0B0C10', borderRadius: '10px', '&:hover': {transform: 'scale(1.05)',},}}>
+                Add Conversation
+                </Button>
                 <List sx={{margin:1, padding:0}}>
                 {conversations.sort((a,b) => a.name < b.name ? -1 : a.name < b.name ? 1 : 0).map((conversation) => (
                     <ListItemButton key={conversation.conversationid} onClick={() => handleChangeConversation(conversation.conversationid)}>
-                    <ListItemText primary={conversation.name} sx={{ padding: 1, backgroundColor: '#4A4455', borderRadius:'10px', margin: -1, borderTop: '1px solid #eef', color: "#eef"}}/>
+                    <ListItemText primary={conversation.name} sx={{ padding: 1,  backgroundColor: '#4A4455', borderRadius:'10px', margin: -0.8, borderTop: '1px solid #eef', color: "#eef", '&:hover': {transform: 'scale(1.05)',},}}/>
                     </ListItemButton>
                 ))}
                 </List>

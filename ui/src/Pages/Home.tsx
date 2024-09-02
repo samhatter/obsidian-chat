@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Box, Button, CssBaseline, Dialog, DialogActions, DialogContent, DialogTitle, Drawer, List, ListItem, ListItemButton, ListItemText, Paper, TextField, Typography} from '@mui/material';
 import MessagingAPI from '../Shared/api/MessagingApi';
 import ConversationDrawer from '../Components/ConversationDrawer';
@@ -15,6 +15,7 @@ const Home: React.FC = () => {
   const [sendMessage, setSendMessage] = useState<string>("")
   const [name, setName] = useState<string>("")
   const messagingAPI = new MessagingAPI("/api");
+  const messageBoxRef = useRef<HTMLDivElement>(null);
 
   const handleUpVote = async (message:Message, conversationid:string) => {
     if (!message.upvotes?.includes(name)) {
@@ -39,8 +40,9 @@ const Home: React.FC = () => {
   };
 
   const handleConversationDialogueSubmit = async () => {
-    const response = await messagingAPI.createConversation(conversationDialogueName, conversationDialogueParticipants.split(',').map(item => item.trim()));
+    const response = await messagingAPI.createConversation(conversationDialogueName, conversationDialogueParticipants.split(' '));
     fetchConversations()
+    setConversationDialogueOpen(false);
   }
 
   const handleChangeConversation = (conversationid: string) => {
@@ -56,15 +58,6 @@ const Home: React.FC = () => {
       setConversations(response.conversations);
     }
   };
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const response = await messagingAPI.getUser();
-      setName(response.name);
-    };
-
-    fetchUser();
-  }, []);
 
   const fetchConversation = async () => {
     if (toggledConversationID && toggledConversationID != "") {
@@ -100,6 +93,20 @@ const Home: React.FC = () => {
     }
   }, [toggledConversationID]);
 
+  useEffect(() => {
+    const fetchUser = async () => {
+      const response = await messagingAPI.getUser();
+      setName(response.name);
+    };
+
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    if (messageBoxRef.current) {
+      messageBoxRef.current.scrollTop = messageBoxRef.current.scrollHeight;
+    }
+  }, [toggledConversationID]);
 
   return (
     <>
@@ -118,6 +125,7 @@ const Home: React.FC = () => {
           setConversationDialogueParticipants={setConversationDialogueParticipants}
         />
         <MessagingView 
+          toggledConversationID={toggledConversationID}
           toggledConversation={toggledConversation}
           sendMessage={sendMessage}
           setSendMessage={setSendMessage}

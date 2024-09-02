@@ -42,7 +42,7 @@ func create_account(w http.ResponseWriter, r *http.Request, client *mongo.Client
     	return
 	}
 
-	if strings.ContainsAny(user.Name,  " ,") {
+	if strings.ContainsAny(user.Name,  " ") {
 		log.Println("Error parsing request")
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
     	return

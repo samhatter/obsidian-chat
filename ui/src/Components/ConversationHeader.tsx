@@ -20,7 +20,7 @@ const ConversationHeader: React.FC<ConversationHeaderProps> = (props) => {
         <List sx={{ display: 'flex',  justifyContent: 'flex-start', flexDirection: 'row', padding: 0, margin: 0, height: '40px' }}>
         {(toggledConversation ? toggledConversation.participants : []).sort().map((name, index)  => (
             <ListItem key={index} sx={{ minWidth: '60px', padding: 1, margin: 0.5, width: "auto", borderRadius: '10px', backgroundColor: '#eef', borderTop: '1px solid #000', textAlign: 'center',}}>
-            <ListItemText primary={name} sx={{color:'#4A4455'}} />
+                <ListItemText primary={name} sx={{color:'#4A4455'}} />
             </ListItem>
         ))}
         </List>

@@ -52,7 +52,7 @@ const ConversationDrawer: React.FC<ConversationDrawerProps> = (props) => {
                 name='chat-name'
                 autoComplete='off'
                 margin="dense"
-                placeholder="Conversation Participants"
+                placeholder="Conversation Name"
                 fullWidth
                 variant="outlined"
                 value={conversationDialogueName}

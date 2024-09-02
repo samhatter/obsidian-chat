@@ -27,9 +27,9 @@ const MessagingView: React.FC<MessagingViewProps> = (props) => {
   } = props;
 
   return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', height: 'auto', padding:0, margin:0}}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', height: 'auto', padding:0, margin: 0, backgroundColor: '#0B0C10'}}>
         <ConversationHeader toggledConversation={toggledConversation}/>
-        <Box sx={{ display: 'flex', flexDirection: 'column-reverse', flexGrow: 1, overflowY: 'auto', padding: 2, backgroundColor: '#eef' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, overflowY: 'auto', padding: 2, margin: 1, backgroundColor: '#eef', borderRadius:'10px'}}>
           {toggledConversation?.messages.map((message, index) => (<MessageBox index={index} message={message} name={name} conversationid={toggledConversation.conversationid} handleUpVote={handleUpVote} handleDownVote={handleDownVote}/>))}
         </Box>
         <ComposeMessage sendMessage={sendMessage} setSendMessage={setSendMessage} handleSendMessage={handleSendMessage}/>

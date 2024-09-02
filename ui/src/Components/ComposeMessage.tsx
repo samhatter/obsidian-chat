@@ -17,20 +17,39 @@ const ComposeMessage: React.FC<ComposeMessageProps> = (props) => {
   } = props;
 
   return (
-    <Box sx={{flexGrow: 0, display: 'flex', alignItems: 'center', padding: 1, margin:0, borderTop: '1px solid #ccc', backgroundColor: '#f9f9f9', height: '60px'}}>
+    <Box sx={{flexGrow: 0, display: 'flex', alignItems: 'center', padding: 1, margin:1, borderTop: '1px solid #eef', backgroundColor: '#4A4455', height: '60px', borderRadius: '10px'}}>
         <TextField
         value={sendMessage}
         onChange={(e) => setSendMessage(e.target.value)}
         placeholder="Type a message..."
         variant="outlined"
         fullWidth
-        sx={{ marginRight: 1, width: 'fill'}}
+        sx={{
+            marginRight: 1, 
+            width: 'fill', 
+            '& .MuiOutlinedInput-root': {
+                    '& fieldset': {
+                        borderColor: '#eef',
+                    },
+                    '&:hover fieldset': {
+                        borderColor: '#eef',
+                    },
+                    '&.Mui-focused fieldset': {
+                        borderColor: '#eef',
+                    },
+                },
+                '& .MuiInputLabel-root.Mui-focused': {
+                    color: '#eef',
+                },
+            '& .MuiInputBase-input': {
+                    color: '#eef', // Text color
+            },
+        }}
         />
         <Button
         variant="contained"
-        color="primary"
         onClick={handleSendMessage}
-        sx={{ height: '100%',  minWidth: '80px', width: 'auto' }}
+        sx={{ height: '100%',  minWidth: '80px', width: 'auto', backgroundColor: '#eef', color: '#0B0C10'}}
         >
         Send
         </Button>

@@ -19,6 +19,8 @@ const ComposeMessage: React.FC<ComposeMessageProps> = (props) => {
   return (
     <Box sx={{flexGrow: 0, display: 'flex', alignItems: 'center', padding: 1, margin:1, borderTop: '1px solid #eef', backgroundColor: '#4A4455', height: '60px', borderRadius: '10px'}}>
         <TextField
+        name='message'
+        autoComplete='off'
         value={sendMessage}
         onChange={(e) => setSendMessage(e.target.value)}
         placeholder="Type a message..."
@@ -50,6 +52,7 @@ const ComposeMessage: React.FC<ComposeMessageProps> = (props) => {
             '& .MuiInputBase-input': {
                     color: '#eef',
             },
+          
         }}
         />
         <Button

@@ -49,6 +49,8 @@ const ConversationDrawer: React.FC<ConversationDrawerProps> = (props) => {
             <DialogTitle>Create a New Conversation</DialogTitle>
             <DialogContent sx={{ width: '100%', maxWidth: 500}}>
             <TextField
+                name='chat-name'
+                autoComplete='off'
                 margin="dense"
                 placeholder="Conversation Participants"
                 fullWidth
@@ -78,6 +80,8 @@ const ConversationDrawer: React.FC<ConversationDrawerProps> = (props) => {
                 }}
             />
             <TextField
+                name='participants'
+                autoComplete='off'
                 margin="dense"
                 placeholder="Conversation Participants"
                 fullWidth

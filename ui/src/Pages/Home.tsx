@@ -102,29 +102,32 @@ const Home: React.FC = () => {
 
 
   return (
-    <Box sx={{ display: 'flex', height:'97vh'}}>
-      <ConversationDrawer
-        conversations={conversations}
-        conversationDialogueOpen={conversationDialogueOpen}
-        conversationDialogueName={conversationDialogueName}
-        conversationDialogueParticipants={conversationDialogueParticipants}
-        handleConversationDialogueClose={handleConversationDialogueClose}
-        handleConversationDialogueOpen={handleConversationDialogueOpen}
-        handleConversationDialogueSubmit={handleConversationDialogueSubmit}
-        handleChangeConversation={handleChangeConversation}
-        setConversationDialogueName={setConversationDialogueName}
-        setConversationDialogueParticipants={setConversationDialogueParticipants}
-      />
-      <MessagingView 
-        toggledConversation={toggledConversation}
-        sendMessage={sendMessage}
-        setSendMessage={setSendMessage}
-        handleSendMessage={handleSendMessage}
-        handleUpVote={handleUpVote}
-        handleDownVote={handleDownVote}
-        name={name}
-      />
-    </Box>
+    <>
+      <CssBaseline />
+      <Box sx={{ display: 'flex', height:'100vh', backgroundColor:'#000', padding:0, margin:0, boxSizing: 'border-box' }}>
+        <ConversationDrawer
+          conversations={conversations}
+          conversationDialogueOpen={conversationDialogueOpen}
+          conversationDialogueName={conversationDialogueName}
+          conversationDialogueParticipants={conversationDialogueParticipants}
+          handleConversationDialogueClose={handleConversationDialogueClose}
+          handleConversationDialogueOpen={handleConversationDialogueOpen}
+          handleConversationDialogueSubmit={handleConversationDialogueSubmit}
+          handleChangeConversation={handleChangeConversation}
+          setConversationDialogueName={setConversationDialogueName}
+          setConversationDialogueParticipants={setConversationDialogueParticipants}
+        />
+        <MessagingView 
+          toggledConversation={toggledConversation}
+          sendMessage={sendMessage}
+          setSendMessage={setSendMessage}
+          handleSendMessage={handleSendMessage}
+          handleUpVote={handleUpVote}
+          handleDownVote={handleDownVote}
+          name={name}
+        />
+      </Box>
+    </>
   );
 };
 

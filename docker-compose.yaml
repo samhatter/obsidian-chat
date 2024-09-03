@@ -6,8 +6,8 @@ services:
       - ./api/src:/app/src
     depends_on:
       - mongodb
-    environment:
-      - .env
+    env_file:
+      - api/.env
   
   ui:
     container_name: ui
@@ -18,8 +18,8 @@ services:
   mongodb:
     image: mongo:latest
     container_name: mongodb
-    environment:
-      - .env
+    env_file:
+      - api/.env
     volumes:
       - mongo_data:/data/db
 

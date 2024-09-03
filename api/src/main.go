@@ -34,7 +34,7 @@ func main() {
 	ctx, cancel  := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	clientOptions := options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%s@mongodb:27017", os.Getenv("MONGO_INITDB_ROOT_USERNAME"), os.Getenv("MONGO_INITDB_ROOT_USERNAME")))
+	clientOptions := options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%s@mongodb:27017", os.Getenv("MONGO_INITDB_ROOT_USERNAME"), os.Getenv("MONGO_INITDB_ROOT_PASSWORD")))
 
 	mongo_client, err := mongo.Connect(ctx, clientOptions)
     if err != nil {

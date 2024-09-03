@@ -1,5 +1,6 @@
 package main
 import (
+	"os"
 	"net/http"
 	"time"
 	"log"
@@ -75,7 +76,7 @@ func send_message(w http.ResponseWriter, r *http.Request, client *mongo.Client, 
 		DownVotes: make([]string, 0),
 	}
 
-	collection := client.Database("messagingdb").Collection("conversations")
+	collection := client.Database(os.Getenv("MONGO_INITDB_DATABASE")).Collection("conversations")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
     defer cancel()
@@ -138,7 +139,7 @@ func create_conversation(w http.ResponseWriter, r *http.Request, client *mongo.C
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
     defer cancel()
 
-	collection := client.Database("messagingdb").Collection("conversations")
+	collection := client.Database(os.Getenv("MONGO_INITDB_DATABASE")).Collection("conversations")
 	_, err = collection.InsertOne(ctx, conversation)
 	if err != nil {
 		log.Println("Error inserting conversation into databse", err)
@@ -166,7 +167,7 @@ func get_conversations(w http.ResponseWriter, r *http.Request, client *mongo.Cli
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
     defer cancel()
 
-	collection := client.Database("messagingdb").Collection("conversations")
+	collection := client.Database(os.Getenv("MONGO_INITDB_DATABASE")).Collection("conversations")
 	filter := bson.M{"participants": name}
 	cursor, err := collection.Find(ctx, filter)
     if err != nil {
@@ -229,7 +230,7 @@ func get_conversation(w http.ResponseWriter, r *http.Request, client *mongo.Clie
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
     defer cancel()
 
-	collection := client.Database("messagingdb").Collection("conversations")
+	collection := client.Database(os.Getenv("MONGO_INITDB_DATABASE")).Collection("conversations")
 	query := bson.M{
 		"conversationid": getConversationRequest.ConversationID,
 		"participants": name,
@@ -270,7 +271,7 @@ func upvote(w http.ResponseWriter, r *http.Request, client *mongo.Client, sessio
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
     defer cancel()
 
-	collection := client.Database("messagingdb").Collection("conversations")
+	collection := client.Database(os.Getenv("MONGO_INITDB_DATABASE")).Collection("conversations")
 	filter := bson.M{"conversationid": voteRequest.ConversationID}
 	update := bson.M{
         "$addToSet": bson.M{
@@ -326,7 +327,7 @@ func downvote(w http.ResponseWriter, r *http.Request, client *mongo.Client, sess
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
     defer cancel()
 
-	collection := client.Database("messagingdb").Collection("conversations")
+	collection := client.Database(os.Getenv("MONGO_INITDB_DATABASE")).Collection("conversations")
 	filter := bson.M{"conversationid": voteRequest.ConversationID}
 	update := bson.M{
         "$addToSet": bson.M{

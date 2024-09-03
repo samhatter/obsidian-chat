@@ -6,6 +6,8 @@ services:
       - ./api/src:/app/src
     depends_on:
       - mongodb
+    environment:
+      - .env
   
   ui:
     container_name: ui
@@ -17,9 +19,7 @@ services:
     image: mongo:latest
     container_name: mongodb
     environment:
-      MONGO_INITDB_ROOT_USERNAME: username
-      MONGO_INITDB_ROOT_PASSWORD: password
-      MONGO_INITDB_DATABASE: messagingdb
+      - .env
     volumes:
       - mongo_data:/data/db
 

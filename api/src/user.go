@@ -5,6 +5,7 @@ import (
 	"log"
 	"strings"
 	"time"
+	"os"
 	"context"
 	"encoding/json"
 	"golang.org/x/crypto/bcrypt"
@@ -48,7 +49,7 @@ func create_account(w http.ResponseWriter, r *http.Request, client *mongo.Client
     	return
 	}
 
-	collection := client.Database("messagingdb").Collection("userlogins")
+	collection := client.Database(os.Getenv("MONGO_INITDB_DATABASE")).Collection("userlogins")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
     defer cancel()
@@ -107,7 +108,7 @@ func login (w http.ResponseWriter, r *http.Request, client *mongo.Client, sessio
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
     	return
 	}
-	collection := client.Database("messagingdb").Collection("userlogins")
+	collection := client.Database(os.Getenv("MONGO_INITDB_DATABASE")).Collection("userlogins")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
     defer cancel()
